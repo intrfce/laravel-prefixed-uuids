@@ -9,6 +9,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Model;
 use Intrfce\PrefixedUuids\Codec;
 use Intrfce\PrefixedUuids\Exceptions\PrefixedUuidException;
+use Intrfce\PrefixedUuids\PrefixedId;
 use Intrfce\PrefixedUuids\PrefixedIdManager;
 
 /**
@@ -16,16 +17,14 @@ use Intrfce\PrefixedUuids\PrefixedIdManager;
  * raw query-builder query and never sees the model layer, so it cannot match a
  * Public ID against a UUID column. This rule decodes first, then checks.
  *
- * Fluent form (constraints):
+ * Naming the model directly (there is no registry to look one up, ADR-0016):
  *   PublicIdExists::for(Customer::class)->where('active', true)->withoutTrashed()
  *
- * String form (registered in the service provider), target is the table:
- *   'customer' => 'public_id_exists:customers'
- *
  * Failure handling is deliberately split (ADR-0015):
- *   - user-input failures (bad tail, wrong/unknown prefix) fail soft as a
- *     validation message and never throw;
- *   - a target model that isn't registered is a programmer error and throws.
+ *   - user-input failures (bad tail, wrong prefix) fail soft as a validation
+ *     message and never throw;
+ *   - a target model with no #[PrefixedId] attribute is a programmer error and
+ *     throws MissingPrefixException.
  *
  * @param  class-string<Model>  $model
  */
@@ -70,8 +69,8 @@ class PublicIdExists implements ValidationRule
     {
         $manager = app(PrefixedIdManager::class);
 
-        // Configuration error — loud (throws) if the model isn't registered.
-        $expectedPrefix = $manager->registry()->prefixForModel($this->model);
+        // Configuration error — loud (throws) if the model has no #[PrefixedId].
+        $expectedPrefix = PrefixedId::forModel($this->model);
 
         // Everything below is untrusted input — fail soft, never throw.
         if (! is_string($value) || ! str_contains($value, '_')) {

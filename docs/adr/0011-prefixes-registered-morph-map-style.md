@@ -1,8 +1,10 @@
 # ADR 0011: Prefixes are registered centrally, morph-map style
 
-- **Status:** accepted
+- **Status:** superseded by ADR-0016
 - **Date:** 2026-07-14
 - **Supersedes:** ADR-0006 (per-class PHP attribute)
+- **Superseded:** 2026-07-14 — the central registry existed only to feed the global resolver; once
+  that capability was dropped (ADR-0016), the prefix moved back onto the model as an attribute.
 
 ## Context
 

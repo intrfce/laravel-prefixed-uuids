@@ -1,7 +1,12 @@
 # ADR 0012: Registry uniqueness and bad-input error semantics
 
-- **Status:** accepted
+- **Status:** partially superseded by ADR-0016
 - **Date:** 2026-07-14
+- **Amended:** 2026-07-14 — ADR-0016 removed the registry, so the *uniqueness* rules here
+  (`DuplicatePrefixException`) and the *unknown-prefix* case (`UnknownPrefixException`, thrown by the
+  now-removed `resolve()`/`decode()`) no longer apply. The bad-input semantics that remain in force —
+  `InvalidPublicIdException` (malformed tail / wrong byte length) and `PrefixMismatchException` (wrong
+  prefix for a known model), plus the 16-byte length contract on the decoder — are unchanged.
 
 ## Context
 

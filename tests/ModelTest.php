@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use Intrfce\PrefixedUuids\Codec;
 use Intrfce\PrefixedUuids\Exceptions\PrefixMismatchException;
-use Intrfce\PrefixedUuids\Facades\PrefixedId;
 use Intrfce\PrefixedUuids\Tests\Fixtures\Post;
 use Intrfce\PrefixedUuids\Tests\Fixtures\User;
 
@@ -51,7 +51,7 @@ it('accepts a correctly-prefixed public id on assignment, storing the raw uuid (
 });
 
 it('throws when assigning a public id with the wrong prefix (ADR-0003)', function () {
-    $customerPublicId = PrefixedId::encode('0192f8a1-9b2c-71d4-a716-446655440000', 'cus');
+    $customerPublicId = 'cus_'.Codec::encode('0192f8a1-9b2c-71d4-a716-446655440000');
 
     $user = new User;
     $user->id = $customerPublicId;

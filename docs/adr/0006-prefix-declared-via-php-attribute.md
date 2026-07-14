@@ -1,9 +1,12 @@
 # ADR 0006: Prefix is declared with a PHP 8 attribute on the model class
 
-- **Status:** superseded by ADR-0011
+- **Status:** reinstated by ADR-0016 (was superseded by ADR-0011)
 - **Date:** 2026-07-14
 - **Superseded:** 2026-07-14 — a central morph-map-style registry replaced the per-class attribute,
   because the global resolver (ADR-0011) needs one authoritative prefix↔model map anyway.
+- **Reinstated:** 2026-07-14 — ADR-0016 drops the global resolver, removing the only reason the
+  registry beat the attribute; the `#[PrefixedId]` attribute described here is back (its per-class
+  caching now lives on the attribute class rather than the trait).
 
 ## Context
 

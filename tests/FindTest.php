@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use Intrfce\PrefixedUuids\Codec;
 use Intrfce\PrefixedUuids\Exceptions\PrefixMismatchException;
-use Intrfce\PrefixedUuids\Facades\PrefixedId;
 use Intrfce\PrefixedUuids\Tests\Fixtures\User;
 
 it('finds a record by its public id (ADR-0014)', function () {
@@ -34,7 +34,7 @@ it('destroys a record by its public id', function () {
 });
 
 it('throws when finding with another model\'s prefix (ADR-0014)', function () {
-    $customerPublicId = PrefixedId::encode('0192f8a1-9b2c-71d4-a716-446655440000', 'cus');
+    $customerPublicId = 'cus_'.Codec::encode('0192f8a1-9b2c-71d4-a716-446655440000');
 
     User::find($customerPublicId);
 })->throws(PrefixMismatchException::class);

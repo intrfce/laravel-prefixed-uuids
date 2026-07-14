@@ -1,7 +1,12 @@
 # ADR 0015: A decode-aware existence rule, in string and fluent forms
 
-- **Status:** accepted
+- **Status:** amended by ADR-0016
 - **Date:** 2026-07-14
+- **Amended:** 2026-07-14 — with the registry gone (ADR-0016), the **string form**
+  `public_id_exists:{table}` is dropped (it needed a `table -> model` lookup). Only the fluent
+  `PublicIdExists::for(Model::class)` form remains. The configuration-error case now throws
+  `MissingPrefixException` (the target model has no `#[PrefixedId]` attribute) instead of
+  `ModelNotRegisteredException`. The fail-soft handling of user input is unchanged.
 
 ## Context
 

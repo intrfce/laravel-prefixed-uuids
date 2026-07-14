@@ -7,7 +7,7 @@ $user->id;         // "0192f8a1-9b2c-71d4-a716-446655440000"  (raw UUID — the 
 $user->public_id;  // "user_3kQ4mZp8Vh7kQp2Rt5Nx9"            (what the world sees)
 
 User::find('user_3kQ4mZp8Vh7kQp2Rt5Nx9');   // decodes, then finds
-PrefixedId::resolve('cus_0Vh7kQp2Rt5Nx93k'); // -> Customer model
+route('users.show', $user);                  // /users/user_3kQ4mZp8Vh7kQp2Rt5Nx9
 ```
 
 Unlike a real Stripe ID (an opaque random token), this ID **decodes back to the UUID with pure math — no database lookup**. That makes it fast and stateless, at the cost of not being opaque (see [Caveats](#caveats)).
@@ -23,43 +23,29 @@ Unlike a real Stripe ID (an opaque random token), this ID **decodes back to the 
 composer require intrfce/laravel-prefixed-uuids
 ```
 
-The service provider and `PrefixedId` facade are auto-discovered.
+The service provider is auto-discovered.
 
 ## Setup
 
-### 1. Register your prefixes
+### 1. Add the trait and declare a prefix
 
-Declare `prefix => model` mappings once, morph-map style, in a service provider's `boot()`:
-
-```php
-use Intrfce\PrefixedUuids\Facades\PrefixedId;
-
-public function boot(): void
-{
-    PrefixedId::map([
-        'user' => \App\Models\User::class,
-        'cus'  => \App\Models\Customer::class,
-    ]);
-}
-```
-
-This is the **single source of truth** for prefixes. A model must be registered before its Public ID is used — an unregistered model throws `ModelNotRegisteredException`.
-
-### 2. Add the trait
+Each model owns its prefix, declared right on the class with the `#[PrefixedId]` attribute — there is no central registry to keep in sync:
 
 ```php
 use Illuminate\Database\Eloquent\Model;
 use Intrfce\PrefixedUuids\Concerns\HasPrefixedId;
+use Intrfce\PrefixedUuids\PrefixedId;
 
+#[PrefixedId('user')]
 class User extends Model
 {
     use HasPrefixedId;
 }
 ```
 
-The trait sets the key to a non-incrementing string, and auto-populates it with a UUID v7 on create.
+The trait sets the key to a non-incrementing string and auto-populates it with a UUID v7 on create. A model that uses the trait without a `#[PrefixedId]` attribute throws `MissingPrefixException` the first time its Public ID is used.
 
-### 3. Use a UUID primary key in your migration
+### 2. Use a UUID primary key in your migration
 
 ```php
 Schema::create('users', function (Blueprint $table) {
@@ -127,29 +113,9 @@ $user->id = 'cus_...';                         // PrefixMismatchException
 
 > Note the deliberate asymmetry: you may *assign* a Public ID, but reading `$user->id` returns the raw UUID. Read `$user->public_id` for the prefixed form.
 
-### The facade
-
-```php
-use Intrfce\PrefixedUuids\Facades\PrefixedId;
-
-PrefixedId::encode($uuid, 'user');   // "user_3kQ4mZp8Vh7kQp2Rt5Nx9"
-PrefixedId::decode('user_3kQ4mZp…'); // raw UUID (no DB access)
-PrefixedId::resolve('cus_0Vh7kQ…');  // Customer model (or null), any registered type
-```
-
 ## Validation
 
-Laravel's built-in `exists` rule runs a raw query and **cannot** match a Public ID against a UUID column (it silently fails on MySQL and 500s on Postgres). Use the decode-aware rule instead.
-
-**String form** — the target is the table:
-
-```php
-$request->validate([
-    'customer' => 'public_id_exists:customers',
-]);
-```
-
-**Fluent form** — for constraints and soft-delete handling:
+Laravel's built-in `exists` rule runs a raw query and **cannot** match a Public ID against a UUID column (it silently fails on MySQL and 500s on Postgres). Use the decode-aware rule instead, naming the model directly:
 
 ```php
 use Intrfce\PrefixedUuids\Rules\PublicIdExists;
@@ -161,7 +127,7 @@ $request->validate([
 ]);
 ```
 
-Bad input (malformed tail, wrong or unknown prefix) fails as a normal validation message — it never throws. A rule targeting an unregistered table is a configuration error and throws `ModelNotRegisteredException`.
+Bad input (malformed tail, wrong prefix) fails as a normal validation message — it never throws. A target model with no `#[PrefixedId]` attribute is a configuration error and throws `MissingPrefixException`.
 
 ## Exceptions
 
@@ -169,11 +135,9 @@ All extend `Intrfce\PrefixedUuids\Exceptions\PrefixedUuidException`:
 
 | Exception | When |
 |-----------|------|
-| `PrefixMismatchException`     | assigning/querying with another model's prefix |
-| `UnknownPrefixException`      | a well-formed prefix that isn't registered |
-| `InvalidPublicIdException`    | malformed value or a tail that isn't valid base62 |
-| `DuplicatePrefixException`    | a prefix/model/table registered twice with conflict |
-| `ModelNotRegisteredException` | a model/table used before being registered |
+| `PrefixMismatchException`   | assigning/querying with another model's prefix |
+| `MissingPrefixException`    | a model uses the trait but has no `#[PrefixedId]` attribute |
+| `InvalidPublicIdException`  | malformed value or a tail that isn't valid base62 |
 
 ## How it works
 
@@ -187,7 +151,8 @@ Decoding is pure integer arithmetic over the UUID's 16 raw bytes (no `ext-gmp`/`
 ## Caveats
 
 - **Not opaque.** A Public ID reveals its UUID, and because UUID v7 embeds a creation timestamp, it reveals *when the record was created*. If you need unguessable external IDs, this is the wrong tool.
-- **Registration is mandatory.** A model must be in `PrefixedId::map([...])` before its Public ID is used.
+- **A prefix is mandatory.** A model using the trait must carry a `#[PrefixedId('…')]` attribute, or it throws `MissingPrefixException`.
+- **No global resolver.** Because prefixes live on models (not in a central map), there is no `resolve('cus_…') -> Customer` lookup from a bare Public ID. Operations are model-scoped: `Customer::find('cus_…')`, route binding, `$model->public_id`.
 - **set/get asymmetry** on the key is intentional — assign a Public ID, read back a raw UUID.
 
 ## Testing

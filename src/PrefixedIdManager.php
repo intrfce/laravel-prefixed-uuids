@@ -9,70 +9,18 @@ use Intrfce\PrefixedUuids\Exceptions\InvalidPublicIdException;
 use Intrfce\PrefixedUuids\Exceptions\PrefixMismatchException;
 
 /**
- * The public API surface, exposed through the PrefixedId facade. Composes the
- * registry (ADR-0011) with the codec (ADR-0002) and centralises the parse /
- * decode / normalise logic reused by the trait, the custom builder, route
- * binding, and the validation rule.
+ * Stateless helper composing the codec (ADR-0002) with each model's declared
+ * prefix (ADR-0016). Centralises the parse / encode / normalise logic reused by
+ * the trait, the custom builder, route binding, and the validation rule. There
+ * is no registry: every operation is scoped to a known model, whose prefix is
+ * read from its #[PrefixedId] attribute.
  */
 class PrefixedIdManager
 {
-    public function __construct(private readonly PrefixIdRegistry $registry) {}
-
-    public function registry(): PrefixIdRegistry
-    {
-        return $this->registry;
-    }
-
-    /**
-     * Register prefix => model mappings, morph-map style.
-     *
-     * @param  array<string, class-string<Model>>  $map
-     */
-    public function map(array $map): void
-    {
-        $this->registry->map($map);
-    }
-
     /** Build a Public ID from a raw UUID and an explicit prefix. */
     public function encode(string $uuid, string $prefix): string
     {
         return $prefix.'_'.Codec::encode($uuid);
-    }
-
-    /** Build a model's Public ID from its raw UUID key. */
-    public function encodeForModel(string $uuid, string $model): string
-    {
-        return $this->encode($uuid, $this->registry->prefixForModel($model));
-    }
-
-    /**
-     * Decode any registered Public ID to its raw UUID (no DB access).
-     *
-     * @throws \Intrfce\PrefixedUuids\Exceptions\UnknownPrefixException
-     * @throws \Intrfce\PrefixedUuids\Exceptions\InvalidPublicIdException
-     */
-    public function decode(string $publicId): string
-    {
-        [$prefix, $tail] = $this->parse($publicId);
-
-        // Ensures the prefix is known; throws UnknownPrefixException otherwise.
-        $this->registry->modelForPrefix($prefix);
-
-        return Codec::decode($tail);
-    }
-
-    /**
-     * Resolve a Public ID to its model instance via the registry, or null if no
-     * such record exists.
-     */
-    public function resolve(string $publicId): ?Model
-    {
-        [$prefix, $tail] = $this->parse($publicId);
-
-        $model = $this->registry->modelForPrefix($prefix);
-        $uuid = Codec::decode($tail);
-
-        return $model::query()->whereKey($uuid)->first();
     }
 
     /**
@@ -107,7 +55,7 @@ class PrefixedIdManager
         }
 
         [$prefix, $tail] = $this->parse($value);
-        $expected = $this->registry->prefixForModel($model);
+        $expected = PrefixedId::forModel($model);
 
         if ($prefix !== $expected) {
             throw PrefixMismatchException::make($expected, $prefix);

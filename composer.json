@@ -27,10 +27,7 @@
         "laravel": {
             "providers": [
                 "Intrfce\\PrefixedUuids\\PrefixedUuidsServiceProvider"
-            ],
-            "aliases": {
-                "PrefixedId": "Intrfce\\PrefixedUuids\\Facades\\PrefixedId"
-            }
+            ]
         }
     },
     "minimum-stability": "stable",

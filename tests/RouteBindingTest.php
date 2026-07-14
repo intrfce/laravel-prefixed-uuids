@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
-use Intrfce\PrefixedUuids\Facades\PrefixedId;
+use Intrfce\PrefixedUuids\Codec;
 use Intrfce\PrefixedUuids\Tests\Fixtures\User;
 
 it('generates urls using the public id (ADR-0004)', function () {
@@ -30,7 +30,7 @@ it('404s when the route value has no matching record', function () {
     Route::get('/users/{user}', fn (User $user) => $user->getKey())
         ->middleware(SubstituteBindings::class);
 
-    $ghost = PrefixedId::encode('0192f8a1-9b2c-71d4-a716-446655440000', 'user');
+    $ghost = 'user_'.Codec::encode('0192f8a1-9b2c-71d4-a716-446655440000');
 
     $this->get('/users/'.$ghost)->assertNotFound();
 });

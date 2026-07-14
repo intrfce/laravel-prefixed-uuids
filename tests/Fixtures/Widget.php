@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace Intrfce\PrefixedUuids\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Intrfce\PrefixedUuids\Concerns\HasPrefixedId;
-use Intrfce\PrefixedUuids\PrefixedId;
 
-#[PrefixedId('cus')]
-class Customer extends Model
+/** Deliberately has NO #[PrefixedId] attribute — used to assert the misconfiguration error. */
+class Widget extends Model
 {
     use HasPrefixedId;
-    use SoftDeletes;
 
-    protected $table = 'customers';
+    protected $table = 'widgets';
 
     protected $guarded = [];
 }

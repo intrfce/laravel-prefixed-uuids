@@ -7,14 +7,13 @@
 
 - **Composer package:** `intrfce/laravel-prefixed-uuids`
 - **Namespace root:** `Intrfce\PrefixedUuids`
-- **Public surface:**
+- **Public surface** (as of ADR-0016):
   - Trait `HasPrefixedId`
-  - Facade `PrefixedId` (→ `map()`, `resolve()`, `encode()`, `decode()`)
+  - Attribute `#[PrefixedId('…')]` (declares a model's prefix)
+  - Rule `PublicIdExists` (fluent, decode-aware existence)
   - `Codec` (base62 ↔ 16 raw bytes)
-  - `PrefixIdRegistry` (prefix ↔ model)
   - Base exception `PrefixedUuidException`, with `PrefixMismatchException`,
-    `UnknownPrefixException`, `InvalidPublicIdException`, `DuplicatePrefixException`,
-    `ModelNotRegisteredException`
+    `MissingPrefixException`, `InvalidPublicIdException`
 - **Support matrix:** `laravel/framework: ^12 | ^13`, `php: ^8.3`.
 
 ## Consequences

@@ -14,11 +14,12 @@ chose a single model-level path: the `id` mutator.
 - **`id` mutator:** assigning to the key accepts either a bare UUID or a correctly-prefixed Public
   ID. A prefixed value is validated (wrong prefix throws, ADR-0003) and decoded; the raw UUID is
   what gets stored.
-- **Static codec** (`PrefixedId::encode()/decode()`) exists as the internal foundation used by the
-  mutator, route binding, serialization, and the global resolver (ADR-forthcoming). It is not
-  positioned as the primary model-level API but is public and usable.
-- No `findByPublicId()` / `whereByPublicId()` model sugar in v1 — the global resolver covers
-  lookup.
+- **Static codec** (`Codec::encode()/decode()`) exists as the internal foundation used by the
+  mutator, route binding, and serialization. It is not positioned as the primary model-level API
+  but is public and usable. (Originally reached via the `PrefixedId` facade; the facade and global
+  resolver were later dropped — ADR-0016.)
+- No `findByPublicId()` / `whereByPublicId()` model sugar — key queries accept a Public ID directly
+  (ADR-0014).
 
 ## Consequences
 

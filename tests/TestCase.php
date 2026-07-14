@@ -6,12 +6,7 @@ namespace Intrfce\PrefixedUuids\Tests;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Intrfce\PrefixedUuids\Facades\PrefixedId;
-use Intrfce\PrefixedUuids\PrefixIdRegistry;
 use Intrfce\PrefixedUuids\PrefixedUuidsServiceProvider;
-use Intrfce\PrefixedUuids\Tests\Fixtures\Customer;
-use Intrfce\PrefixedUuids\Tests\Fixtures\Post;
-use Intrfce\PrefixedUuids\Tests\Fixtures\User;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra
@@ -21,15 +16,6 @@ abstract class TestCase extends Orchestra
         parent::setUp();
 
         $this->createSchema();
-
-        // The registry singleton persists across tests in one process — reset it.
-        app(PrefixIdRegistry::class)->flush();
-
-        PrefixedId::map([
-            'user' => User::class,
-            'cus' => Customer::class,
-            'post' => Post::class,
-        ]);
     }
 
     protected function getPackageProviders($app): array

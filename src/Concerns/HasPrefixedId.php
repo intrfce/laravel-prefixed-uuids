@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use Intrfce\PrefixedUuids\Eloquent\PrefixedUuidBuilder;
 use Intrfce\PrefixedUuids\Exceptions\PrefixedUuidException;
+use Intrfce\PrefixedUuids\PrefixedId;
 use Intrfce\PrefixedUuids\PrefixedIdManager;
 
 /**
@@ -21,8 +22,9 @@ use Intrfce\PrefixedUuids\PrefixedIdManager;
  *  - $model->id = 'user_..'  -> validates + stores the UUID (ADR-0008)
  *  - User::find('user_..')   -> decodes then queries        (ADR-0014)
  *
- * The model's prefix comes from the central registry (ADR-0011); the model must
- * be registered via PrefixedId::map([...]) before its Public ID is used.
+ * The model's prefix is declared on the model itself with the #[PrefixedId]
+ * attribute (ADR-0016); a model without one throws MissingPrefixException the
+ * first time its Public ID is used.
  */
 trait HasPrefixedId
 {
@@ -50,10 +52,10 @@ trait HasPrefixedId
         return app(PrefixedIdManager::class);
     }
 
-    /** The registered prefix for this model. */
+    /** The prefix declared on this model via #[PrefixedId]. */
     public function idPrefix(): string
     {
-        return static::prefixedIdManager()->registry()->prefixForModel(static::class);
+        return PrefixedId::forModel(static::class);
     }
 
     /** The prefixed Public ID, or null before the key exists. */
