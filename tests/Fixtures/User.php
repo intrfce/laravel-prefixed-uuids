@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Intrfce\PrefixedUuids\Tests\Fixtures;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Intrfce\PrefixedUuids\Concerns\HasPrefixedId;
+
+class User extends Model
+{
+    use HasPrefixedId;
+
+    protected $table = 'users';
+
+    protected $guarded = [];
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+}

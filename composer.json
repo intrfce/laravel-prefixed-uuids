@@ -1,0 +1,43 @@
+{
+    "name": "intrfce/laravel-prefixed-uuids",
+    "description": "Stripe-style, reversible prefixed public IDs for Eloquent models, backed by UUID v7.",
+    "keywords": ["laravel", "uuid", "uuid7", "stripe", "identifiers", "prefixed-id"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^12.0",
+        "illuminate/database": "^12.0",
+        "illuminate/contracts": "^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "pestphp/pest": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Intrfce\\PrefixedUuids\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Intrfce\\PrefixedUuids\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Intrfce\\PrefixedUuids\\PrefixedUuidsServiceProvider"
+            ],
+            "aliases": {
+                "PrefixedId": "Intrfce\\PrefixedUuids\\Facades\\PrefixedId"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
