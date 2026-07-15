@@ -1,3 +1,5 @@
+> Note: This is not production ready, and the docs aren't ready yet.
+
 # Laravel Prefixed UUIDs
 
 Stripe-style public identifiers for Eloquent models — `user_3kQ4mZp8Vh7kQp2Rt5Nx9`, `cus_0192f8a1...` — that are a **reversible base62 encoding** of the model's **UUID v7** primary key.
