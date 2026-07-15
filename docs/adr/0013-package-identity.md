@@ -8,7 +8,7 @@
 - **Composer package:** `intrfce/laravel-prefixed-uuids`
 - **Namespace root:** `Intrfce\PrefixedUuids`
 - **Public surface** (as of ADR-0016):
-  - Trait `HasPrefixedId`
+  - Trait `HasPrefixedUUID`
   - Attribute `#[PrefixedId('…')]` (declares a model's prefix)
   - Rule `PublicIdExists` (fluent, decode-aware existence)
   - `Codec` (base62 ↔ 16 raw bytes)

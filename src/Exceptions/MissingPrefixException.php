@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Intrfce\PrefixedUuids\Exceptions;
 
 /**
- * Thrown when a model using HasPrefixedId has no #[PrefixedId] attribute
+ * Thrown when a model using HasPrefixedUUID has no #[PrefixedId] attribute
  * declaring its prefix. This is a configuration / programmer error, not a
  * user-input error. See ADR-0016.
  */

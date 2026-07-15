@@ -35,13 +35,13 @@ Each model owns its prefix, declared right on the class with the `#[PrefixedId]`
 
 ```php
 use Illuminate\Database\Eloquent\Model;
-use Intrfce\PrefixedUuids\Concerns\HasPrefixedId;
+use Intrfce\PrefixedUuids\Concerns\HasPrefixedUUID;
 use Intrfce\PrefixedUuids\PrefixedId;
 
 #[PrefixedId('user')]
 class User extends Model
 {
-    use HasPrefixedId;
+    use HasPrefixedUUID;
 }
 ```
 

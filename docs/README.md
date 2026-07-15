@@ -25,7 +25,7 @@ routing — that was the central thing the grilling killed.
 #[PrefixedId('user')]
 class User extends Model
 {
-    use HasPrefixedId;   // v7 key, incrementing=false, keyType=string. ADR-0005
+    use HasPrefixedUUID;   // v7 key, incrementing=false, keyType=string. ADR-0005
 }
 
 // 2. Internals use the raw UUID — untouched. ADR-0004
@@ -62,7 +62,7 @@ live on models, not in a central map, so every operation is model-scoped (ADR-00
 
 | Piece | Role |
 |-------|------|
-| `HasPrefixedId` trait | v7 key generation, `public_id` accessor, `id` mutator, JSON swap, route binding, custom builder |
+| `HasPrefixedUUID` trait | v7 key generation, `public_id` accessor, `id` mutator, JSON swap, route binding, custom builder |
 | Custom Eloquent builder | decodes Public IDs in `whereKey()`/`whereKeyNot()` so `find()`/`destroy()` accept either form |
 | `#[PrefixedId]` attribute | declares a model's prefix on the class; reads it (cached) via reflection |
 | `PrefixedIdManager` | stateless helper: `encode()`, `parse()`, `normalizeKeyForModel()` (internal, model-scoped) |

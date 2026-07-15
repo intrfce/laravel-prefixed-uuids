@@ -13,7 +13,7 @@ use ReflectionClass;
  * Declares a model's Public ID prefix, right on the model (ADR-0016):
  *
  *     #[PrefixedId('cus')]
- *     class Customer extends Model { use HasPrefixedId; }
+ *     class Customer extends Model { use HasPrefixedUUID; }
  *
  * The prefix lives with the model, so there is no central registry to keep in
  * sync (this supersedes the morph-map-style registration of ADR-0011). A prefix

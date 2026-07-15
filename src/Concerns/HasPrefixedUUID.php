@@ -26,17 +26,17 @@ use Intrfce\PrefixedUuids\PrefixedIdManager;
  * attribute (ADR-0016); a model without one throws MissingPrefixException the
  * first time its Public ID is used.
  */
-trait HasPrefixedId
+trait HasPrefixedUUID
 {
     /** Set the key characteristics for a UUID primary key (ADR-0005). */
-    public function initializeHasPrefixedId(): void
+    public function initializeHasPrefixedUUID(): void
     {
         $this->incrementing = false;
         $this->keyType = 'string';
     }
 
     /** Auto-populate the key with a UUID v7 on creation (ADR-0005). */
-    public static function bootHasPrefixedId(): void
+    public static function bootHasPrefixedUUID(): void
     {
         static::creating(function ($model) {
             $keyName = $model->getKeyName();

@@ -27,7 +27,7 @@ Declare the prefix on the model with a PHP attribute, and delete the registry:
 
 ```php
 #[PrefixedId('cus')]
-class Customer extends Model { use HasPrefixedId; }
+class Customer extends Model { use HasPrefixedUUID; }
 ```
 
 - The prefix is read from the `#[PrefixedId]` attribute via reflection, cached per class (the prefix

@@ -28,7 +28,7 @@ PrefixedId::map([
 
 - The registry is the **single source of truth** for `prefix <-> model`. There is **no**
   `#[PrefixedId]` attribute and no per-model prefix property.
-- The `HasPrefixedId` trait resolves its own prefix by looking `static::class` up in the registry.
+- The `HasPrefixedUUID` trait resolves its own prefix by looking `static::class` up in the registry.
 - The map is bidirectional: prefix→class (for `resolve()`) and class→prefix (for the trait).
 
 ## Consequences

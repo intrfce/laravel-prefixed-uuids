@@ -6,13 +6,13 @@ namespace Intrfce\PrefixedUuids\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Intrfce\PrefixedUuids\Concerns\HasPrefixedId;
+use Intrfce\PrefixedUuids\Concerns\HasPrefixedUUID;
 use Intrfce\PrefixedUuids\PrefixedId;
 
 #[PrefixedId('post')]
 class Post extends Model
 {
-    use HasPrefixedId;
+    use HasPrefixedUUID;
 
     protected $table = 'posts';
 
