@@ -6,7 +6,7 @@ catch ourselves using two words for one thing (or one word for two things), we f
 | Term | Meaning | Status |
 |------|---------|--------|
 | **UUID** | The internal, canonical 16-byte identifier and primary key. **v7**, stored via `$table->uuid()`. | 🟢 ADR-0005 |
-| **`#[PrefixedId]`** | Class attribute declaring a model's prefix, e.g. `#[PrefixedId('cus')]`. The single source of truth for that model's prefix; read via reflection, cached per class. | 🟢 ADR-0016 |
+| **`idPrefix()`** | Abstract method on the model returning its prefix, e.g. `return 'cus';`. The single source of truth for that model's prefix; enforced at compile time. | 🟢 ADR-0017 |
 | **Global resolver** | `resolve($publicId) → Model` from a bare Public ID. **Removed** — prefixes live on models, not a central map, so resolution is always model-scoped. | ⚫ removed, ADR-0016 |
 | **`public_id`** | Read accessor returning the prefixed form: `$model->public_id`. | 🟢 ADR-0012 |
 | **id mutator** | Setter accepting a bare UUID or correctly-prefixed Public ID; stores the UUID (get stays raw). | 🟢 ADR-0008 |

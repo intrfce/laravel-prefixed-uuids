@@ -8,8 +8,8 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Model;
 use Intrfce\PrefixedUuids\Codec;
+use Intrfce\PrefixedUuids\Concerns\HasPrefixedUuids;
 use Intrfce\PrefixedUuids\Exceptions\PrefixedUuidException;
-use Intrfce\PrefixedUuids\PrefixedId;
 use Intrfce\PrefixedUuids\PrefixedIdManager;
 
 /**
@@ -17,16 +17,14 @@ use Intrfce\PrefixedUuids\PrefixedIdManager;
  * raw query-builder query and never sees the model layer, so it cannot match a
  * Public ID against a UUID column. This rule decodes first, then checks.
  *
- * Naming the model directly (there is no registry to look one up, ADR-0016):
+ * Naming the model directly (there is no registry to look one up, ADR-0017):
  *   PublicIdExists::for(Customer::class)->where('active', true)->withoutTrashed()
  *
- * Failure handling is deliberately split (ADR-0015):
- *   - user-input failures (bad tail, wrong prefix) fail soft as a validation
- *     message and never throw;
- *   - a target model with no #[PrefixedId] attribute is a programmer error and
- *     throws MissingPrefixException.
+ * The target model must use HasPrefixedUuids; its prefix is read from idPrefix().
+ * User-input failures (bad tail, wrong prefix) fail soft as a validation message
+ * and never throw (ADR-0015).
  *
- * @param  class-string<Model>  $model
+ * @param  class-string<Model&HasPrefixedUuids>  $model
  */
 class PublicIdExists implements ValidationRule
 {
@@ -37,7 +35,7 @@ class PublicIdExists implements ValidationRule
 
     public function __construct(private readonly string $model) {}
 
-    /** @param  class-string<Model>  $model */
+    /** @param  class-string<Model&HasPrefixedUuids>  $model */
     public static function for(string $model): self
     {
         return new self($model);
@@ -69,8 +67,7 @@ class PublicIdExists implements ValidationRule
     {
         $manager = app(PrefixedIdManager::class);
 
-        // Configuration error — loud (throws) if the model has no #[PrefixedId].
-        $expectedPrefix = PrefixedId::forModel($this->model);
+        $expectedPrefix = (new $this->model)->idPrefix();
 
         // Everything below is untrusted input — fail soft, never throw.
         if (! is_string($value) || ! str_contains($value, '_')) {

@@ -6,16 +6,19 @@ namespace Intrfce\PrefixedUuids\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Intrfce\PrefixedUuids\Concerns\HasPrefixedUUID;
-use Intrfce\PrefixedUuids\PrefixedId;
+use Intrfce\PrefixedUuids\Concerns\HasPrefixedUuids;
 
-#[PrefixedId('cus')]
 class Customer extends Model
 {
-    use HasPrefixedUUID;
+    use HasPrefixedUuids;
     use SoftDeletes;
 
     protected $table = 'customers';
 
     protected $guarded = [];
+
+    public function idPrefix(): string
+    {
+        return 'cus';
+    }
 }

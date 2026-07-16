@@ -1,6 +1,7 @@
 # ADR 0016: Prefix lives on the model; drop the central registry and global resolver
 
-- **Status:** accepted
+- **Status:** partially superseded by ADR-0017 — the prefix mechanism (a `#[PrefixedId]` attribute)
+  is replaced by an `idPrefix()` method; the no-registry, model-scoped decision here still stands.
 - **Date:** 2026-07-14
 - **Supersedes:** ADR-0011 (central morph-map-style registry)
 - **Reinstates:** ADR-0006 (prefix declared via a PHP attribute), with one deliberate difference —

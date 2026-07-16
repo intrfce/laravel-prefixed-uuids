@@ -21,11 +21,15 @@ routing — that was the central thing the grilling killed.
 ## End-to-end shape
 
 ```php
-// 1. The model opts in and declares its prefix on the class. ADR-0016 / 0005
-#[PrefixedId('user')]
+// 1. The model opts in and declares its prefix with a method. ADR-0017 / 0005
 class User extends Model
 {
-    use HasPrefixedUUID;   // v7 key, incrementing=false, keyType=string. ADR-0005
+    use HasPrefixedUuids;   // v7 key, incrementing=false, keyType=string (via HasUuids). ADR-0005 / 0018
+
+    public function idPrefix(): string
+    {
+        return 'user';
+    }
 }
 
 // 2. Internals use the raw UUID — untouched. ADR-0004
@@ -52,7 +56,7 @@ $request->validate([
         ->where('active', true)->withoutTrashed(),
 ]);
 // bad tail / wrong prefix -> validation message (never throws)
-// target model has no #[PrefixedId] -> MissingPrefixException (programmer error)
+// target model must use HasPrefixedUuids; its prefix is read from idPrefix()
 ```
 
 There is deliberately **no** global `resolve('cus_…') -> Customer` from a bare Public ID: prefixes
@@ -62,13 +66,13 @@ live on models, not in a central map, so every operation is model-scoped (ADR-00
 
 | Piece | Role |
 |-------|------|
-| `HasPrefixedUUID` trait | v7 key generation, `public_id` accessor, `id` mutator, JSON swap, route binding, custom builder |
+| `HasPrefixedUuids` trait | builds on core `HasUuids` for v7 key generation; adds `public_id` accessor, `id` mutator, JSON swap, route binding, custom builder |
+| `idPrefix()` method | abstract on the trait; each model returns its own prefix (ADR-0017) |
 | Custom Eloquent builder | decodes Public IDs in `whereKey()`/`whereKeyNot()` so `find()`/`destroy()` accept either form |
-| `#[PrefixedId]` attribute | declares a model's prefix on the class; reads it (cached) via reflection |
 | `PrefixedIdManager` | stateless helper: `encode()`, `parse()`, `normalizeKeyForModel()` (internal, model-scoped) |
 | `PublicIdExists` rule | decode-aware existence validation (fluent form only) |
 | `Codec` | base62 ↔ 16 raw UUID bytes; validates 16-byte length |
-| Exceptions | `PrefixMismatch`, `MissingPrefix`, `InvalidPublicId` |
+| Exceptions | `PrefixMismatch`, `InvalidPublicId` |
 
 ## Decisions (ADRs)
 
@@ -79,7 +83,7 @@ live on models, not in a central map, so every operation is model-scoped (ADR-00
 | [0003](./adr/0003-mismatched-prefix-throws.md) | Mismatched prefix on set throws |
 | [0004](./adr/0004-orm-key-stays-raw-uuid.md) | ORM key stays the raw UUID; Public ID is an outward skin |
 | [0005](./adr/0005-uuid-v7-and-storage.md) | UUID v7, stored via `$table->uuid()`; accepts creation-time leak |
-| [0006](./adr/0006-prefix-declared-via-php-attribute.md) | Prefix via PHP attribute (superseded by 0011, reinstated by 0016) |
+| [0006](./adr/0006-prefix-declared-via-php-attribute.md) | Prefix via PHP attribute (superseded by 0011, reinstated by 0016, superseded by 0017) |
 | [0007](./adr/0007-json-replaces-id-hides-uuid.md) | JSON `id` = Public ID; raw UUID hidden |
 | [0008](./adr/0008-decode-paths.md) | Decode paths: `id` mutator + static codec |
 | [0009](./adr/0009-benchmark-is-informational.md) | Benchmark reports timings; never gates the build |
@@ -89,14 +93,16 @@ live on models, not in a central map, so every operation is model-scoped (ADR-00
 | [0013](./adr/0013-package-identity.md) | Package identity and support matrix (L12+/PHP 8.3+) |
 | [0014](./adr/0014-find-accepts-public-id.md) | `find()`/`whereKey()` transparently accept a Public ID |
 | [0015](./adr/0015-validation-existence-rule.md) | Decode-aware existence rule (fluent form), fails soft |
-| [0016](./adr/0016-prefix-on-model-no-registry.md) | Prefix on the model via attribute; drop the registry + global resolver |
+| [0016](./adr/0016-prefix-on-model-no-registry.md) | Prefix on the model via attribute; drop the registry + global resolver (attribute superseded by 0017) |
+| [0017](./adr/0017-prefix-declared-via-method.md) | Declare the prefix with an abstract `idPrefix()` method, not an attribute |
+| [0018](./adr/0018-build-on-hasuuids.md) | Build on core `HasUuids`; modern `Attribute` accessor |
 
 ## Known properties & non-goals
 
 - **Not opaque.** A Public ID reveals its UUID, and (via v7) the record's creation time. If you
   need unguessable external IDs, this package is the wrong tool.
-- **A prefix is mandatory.** A model using the trait without a `#[PrefixedId]` attribute throws
-  `MissingPrefixException` when used (ADR-0016).
+- **A prefix is mandatory.** A model using the trait must implement the abstract `idPrefix()`
+  method, so a missing prefix is a compile-time error, not a runtime one (ADR-0017).
 - **No global resolver.** There is no `resolve('cus_…') -> Customer` from a bare Public ID; every
   operation is model-scoped (ADR-0016).
 - **set/get asymmetry** on `id` is intentional (ADR-0008): you may *assign* a prefixed value, but

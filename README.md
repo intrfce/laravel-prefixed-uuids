@@ -31,21 +31,24 @@ The service provider is auto-discovered.
 
 ### 1. Add the trait and declare a prefix
 
-Each model owns its prefix, declared right on the class with the `#[PrefixedId]` attribute — there is no central registry to keep in sync:
+Each model owns its prefix, returned from an `idPrefix()` method on the class — there is no central registry to keep in sync:
 
 ```php
 use Illuminate\Database\Eloquent\Model;
-use Intrfce\PrefixedUuids\Concerns\HasPrefixedUUID;
-use Intrfce\PrefixedUuids\PrefixedId;
+use Intrfce\PrefixedUuids\Concerns\HasPrefixedUuids;
 
-#[PrefixedId('user')]
 class User extends Model
 {
-    use HasPrefixedUUID;
+    use HasPrefixedUuids;
+
+    public function idPrefix(): string
+    {
+        return 'user';
+    }
 }
 ```
 
-The trait sets the key to a non-incrementing string and auto-populates it with a UUID v7 on create. A model that uses the trait without a `#[PrefixedId]` attribute throws `MissingPrefixException` the first time its Public ID is used.
+The trait builds on Laravel's own `HasUuids`, so the key is a non-incrementing string auto-populated with a UUID v7 on create (override `newUniqueId()` to change that). `idPrefix()` is `abstract` — a model that uses the trait without implementing it won't compile, so there is no runtime "missing prefix" state to guard against.
 
 ### 2. Use a UUID primary key in your migration
 
@@ -129,7 +132,7 @@ $request->validate([
 ]);
 ```
 
-Bad input (malformed tail, wrong prefix) fails as a normal validation message — it never throws. A target model with no `#[PrefixedId]` attribute is a configuration error and throws `MissingPrefixException`.
+Bad input (malformed tail, wrong prefix) fails as a normal validation message — it never throws. The target model must use `HasPrefixedUuids`; its prefix is read from `idPrefix()`.
 
 ## Exceptions
 
@@ -138,7 +141,6 @@ All extend `Intrfce\PrefixedUuids\Exceptions\PrefixedUuidException`:
 | Exception | When |
 |-----------|------|
 | `PrefixMismatchException`   | assigning/querying with another model's prefix |
-| `MissingPrefixException`    | a model uses the trait but has no `#[PrefixedId]` attribute |
 | `InvalidPublicIdException`  | malformed value or a tail that isn't valid base62 |
 
 ## How it works
@@ -153,7 +155,7 @@ Decoding is pure integer arithmetic over the UUID's 16 raw bytes (no `ext-gmp`/`
 ## Caveats
 
 - **Not opaque.** A Public ID reveals its UUID, and because UUID v7 embeds a creation timestamp, it reveals *when the record was created*. If you need unguessable external IDs, this is the wrong tool.
-- **A prefix is mandatory.** A model using the trait must carry a `#[PrefixedId('…')]` attribute, or it throws `MissingPrefixException`.
+- **A prefix is mandatory.** A model using the trait must implement `idPrefix()` — the method is abstract, so this is enforced at compile time, not at runtime.
 - **No global resolver.** Because prefixes live on models (not in a central map), there is no `resolve('cus_…') -> Customer` lookup from a bare Public ID. Operations are model-scoped: `Customer::find('cus_…')`, route binding, `$model->public_id`.
 - **set/get asymmetry** on the key is intentional — assign a Public ID, read back a raw UUID.
 

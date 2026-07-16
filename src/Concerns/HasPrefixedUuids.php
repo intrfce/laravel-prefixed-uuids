@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Intrfce\PrefixedUuids\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Intrfce\PrefixedUuids\Eloquent\PrefixedUuidBuilder;
 use Intrfce\PrefixedUuids\Exceptions\PrefixedUuidException;
-use Intrfce\PrefixedUuids\PrefixedId;
 use Intrfce\PrefixedUuids\PrefixedIdManager;
 
 /**
@@ -22,44 +22,28 @@ use Intrfce\PrefixedUuids\PrefixedIdManager;
  *  - $model->id = 'user_..'  -> validates + stores the UUID (ADR-0008)
  *  - User::find('user_..')   -> decodes then queries        (ADR-0014)
  *
- * The model's prefix is declared on the model itself with the #[PrefixedId]
- * attribute (ADR-0016); a model without one throws MissingPrefixException the
- * first time its Public ID is used.
+ * Key generation and the string, non-incrementing key type come from Laravel's
+ * own HasUuids trait, whose newUniqueId() already mints a UUID v7 (ADR-0005);
+ * override it on the model to change that.
+ *
+ * Each model declares its prefix by implementing idPrefix() (ADR-0017). The
+ * method is abstract, so a model that forgets it will not compile — there is no
+ * runtime misconfiguration state to guard against.
  */
-trait HasPrefixedUUID
+trait HasPrefixedUuids
 {
-    /** Set the key characteristics for a UUID primary key (ADR-0005). */
-    public function initializeHasPrefixedUUID(): void
-    {
-        $this->incrementing = false;
-        $this->keyType = 'string';
-    }
+    use HasUuids;
 
-    /** Auto-populate the key with a UUID v7 on creation (ADR-0005). */
-    public static function bootHasPrefixedUUID(): void
-    {
-        static::creating(function ($model) {
-            $keyName = $model->getKeyName();
-
-            if (empty($model->getAttribute($keyName))) {
-                $model->setAttribute($keyName, (string) Str::uuid7());
-            }
-        });
-    }
+    /** The Public ID prefix for this model, e.g. "cus" -> "cus_3kQ4mZp...". */
+    abstract public function idPrefix(): string;
 
     protected static function prefixedIdManager(): PrefixedIdManager
     {
         return app(PrefixedIdManager::class);
     }
 
-    /** The prefix declared on this model via #[PrefixedId]. */
-    public function idPrefix(): string
-    {
-        return PrefixedId::forModel(static::class);
-    }
-
     /** The prefixed Public ID, or null before the key exists. */
-    public function publicId(): ?string
+    public function toPublicId(): ?string
     {
         $key = $this->getKey();
 
@@ -71,9 +55,9 @@ trait HasPrefixedUUID
     }
 
     /** Read accessor: $model->public_id (ADR-0012). */
-    public function getPublicIdAttribute(): ?string
+    protected function publicId(): Attribute
     {
-        return $this->publicId();
+        return Attribute::get(fn (): ?string => $this->toPublicId());
     }
 
     /**
@@ -97,7 +81,7 @@ trait HasPrefixedUUID
         $keyName = $this->getKeyName();
 
         if (array_key_exists($keyName, $array) && $this->getKey() !== null) {
-            $array[$keyName] = $this->publicId();
+            $array[$keyName] = $this->toPublicId();
         }
 
         return $array;
@@ -106,7 +90,7 @@ trait HasPrefixedUUID
     /** URLs carry the Public ID (ADR-0004). */
     public function getRouteKey()
     {
-        return $this->publicId();
+        return $this->toPublicId();
     }
 
     /**
