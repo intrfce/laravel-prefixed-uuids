@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Intrfce\PrefixedUuids;
 
 use Illuminate\Database\Eloquent\Model;
+use Intrfce\PrefixedUuids\Concerns\HasPrefixedUuids;
 use Intrfce\PrefixedUuids\Exceptions\InvalidPublicIdException;
 use Intrfce\PrefixedUuids\Exceptions\PrefixMismatchException;
 
 /**
  * Stateless helper composing the codec (ADR-0002) with each model's declared
- * prefix (ADR-0016). Centralises the parse / encode / normalise logic reused by
+ * prefix (ADR-0017). Centralises the parse / encode / normalise logic reused by
  * the trait, the custom builder, route binding, and the validation rule. There
  * is no registry: every operation is scoped to a known model, whose prefix is
- * read from its #[PrefixedId] attribute.
+ * read from its idPrefix() method.
  */
 class PrefixedIdManager
 {
@@ -46,7 +47,7 @@ class PrefixedIdManager
      * database (ADR-0004). Bare UUIDs (and any non-string) pass through
      * untouched; a Public ID must carry this model's prefix or it throws.
      *
-     * @param  class-string<Model>  $model
+     * @param  class-string<Model&HasPrefixedUuids>  $model
      */
     public function normalizeKeyForModel(mixed $value, string $model): mixed
     {
@@ -55,7 +56,7 @@ class PrefixedIdManager
         }
 
         [$prefix, $tail] = $this->parse($value);
-        $expected = PrefixedId::forModel($model);
+        $expected = (new $model)->idPrefix();
 
         if ($prefix !== $expected) {
             throw PrefixMismatchException::make($expected, $prefix);

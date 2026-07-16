@@ -1,6 +1,6 @@
 # ADR 0006: Prefix is declared with a PHP 8 attribute on the model class
 
-- **Status:** reinstated by ADR-0016 (was superseded by ADR-0011)
+- **Status:** superseded by ADR-0017 (was reinstated by ADR-0016, superseded by ADR-0011)
 - **Date:** 2026-07-14
 - **Superseded:** 2026-07-14 — a central morph-map-style registry replaced the per-class attribute,
   because the global resolver (ADR-0011) needs one authoritative prefix↔model map anyway.

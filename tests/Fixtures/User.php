@@ -6,17 +6,20 @@ namespace Intrfce\PrefixedUuids\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Intrfce\PrefixedUuids\Concerns\HasPrefixedUUID;
-use Intrfce\PrefixedUuids\PrefixedId;
+use Intrfce\PrefixedUuids\Concerns\HasPrefixedUuids;
 
-#[PrefixedId('user')]
 class User extends Model
 {
-    use HasPrefixedUUID;
+    use HasPrefixedUuids;
 
     protected $table = 'users';
 
     protected $guarded = [];
+
+    public function idPrefix(): string
+    {
+        return 'user';
+    }
 
     public function posts(): HasMany
     {

@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Validator;
 use Intrfce\PrefixedUuids\Codec;
-use Intrfce\PrefixedUuids\Exceptions\MissingPrefixException;
 use Intrfce\PrefixedUuids\Rules\PublicIdExists;
 use Intrfce\PrefixedUuids\Tests\Fixtures\Customer;
 use Intrfce\PrefixedUuids\Tests\Fixtures\User;
-use Intrfce\PrefixedUuids\Tests\Fixtures\Widget;
 
 function validate(mixed $value, mixed $rule): bool
 {
@@ -37,10 +35,6 @@ it('fails soft on a wrong-model prefix rather than throwing', function () {
     // A user_ id validated against Customer must fail, not throw.
     expect(validate($user->public_id, PublicIdExists::for(Customer::class)))->toBeFalse();
 });
-
-it('throws when the target model has no #[PrefixedId] attribute (programmer error)', function () {
-    validate('wid_whatever0000000000000', PublicIdExists::for(Widget::class));
-})->throws(MissingPrefixException::class);
 
 it('supports soft-delete awareness', function () {
     $customer = Customer::create(['name' => 'Acme']);

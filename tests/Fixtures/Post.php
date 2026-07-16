@@ -6,17 +6,20 @@ namespace Intrfce\PrefixedUuids\Tests\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Intrfce\PrefixedUuids\Concerns\HasPrefixedUUID;
-use Intrfce\PrefixedUuids\PrefixedId;
+use Intrfce\PrefixedUuids\Concerns\HasPrefixedUuids;
 
-#[PrefixedId('post')]
 class Post extends Model
 {
-    use HasPrefixedUUID;
+    use HasPrefixedUuids;
 
     protected $table = 'posts';
 
     protected $guarded = [];
+
+    public function idPrefix(): string
+    {
+        return 'post';
+    }
 
     public function user(): BelongsTo
     {
